@@ -125,15 +125,15 @@
                 <button
                   class="btn mt-auto"
                   [ngClass]="
-                    isItemInWardrobe(template.name)
+                    isItemInWardrobe(template.id)
                       ? 'btn-secondary disabled'
                       : 'btn-primary'
                   "
                   (click)="addItemFromTemplate(template)"
-                  [disabled]="isItemInWardrobe(template.name)"
+                  [disabled]="isItemInWardrobe(template.id)"
                 >
                   {{
-                    isItemInWardrobe(template.name)
+                    isItemInWardrobe(template.id)
                       ? "Added ✓"
                       : "Add to My Wardrobe"
                   }}

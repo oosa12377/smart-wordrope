@@ -21,6 +21,7 @@ export interface Item {
   style?: string;
   color?: string;
   uid?: string;
+  templateId?: string;
 }
 
 @Injectable({

@@ -16,13 +16,11 @@ import { StorageService } from '../../services/storage.service';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  // إضافة ReactiveFormsModule و RouterLink
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent implements OnInit {
-  // حقن كل الخدمات المطلوبة
   private itemsService = inject(ItemsService);
   private authService = inject(AuthService);
   private auth = inject(Auth);
@@ -34,13 +32,11 @@ export class DashboardComponent implements OnInit {
   userWardrobe: Item[] = [];
   templateItems$!: Observable<Item[]>;
 
-  // --- خصائص لفورم المدير (Admin Panel) ---
-  adminUid = 'UjifE846uXOMn6QgqwSAqfxcAq42'; // (!!!) هام: استبدل هذا بالـ UID الخاص بحسابك
+  adminUid = 'UjifE846uXOMn6QgqwSAqfxcAq42'; //  userid admin
   templateItemForm!: FormGroup;
   selectedFile: File | null = null;
   isUploading = false;
 
-  // --- خصائص للقوائم المنسدلة ---
   itemTypes: string[] = ['Top', 'Bottom', 'Shoes', 'Jacket', 'Accessory'];
   styles: string[] = ['Casual', 'Formal', 'Sport', 'Smart Casual', 'Vintage'];
   colors: string[] = [
@@ -76,20 +72,16 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  /**
-   * دالة خاصة بالمستخدم العادي لإضافة قطعة من القائمة العامة إلى خزانته
-   */
   addItemFromTemplate(templateItem: Item) {
     const user = this.auth.currentUser;
     if (!user) {
       alert('You must be logged in!');
       return;
     }
-
-    // إنشاء قطعة جديدة بناءً على القالب مع إضافة هوية المستخدم
     const newItem: Item = { ...templateItem };
-    delete newItem.id; // نحذف ID القالب لأنه غير ضروري في الخزانة الشخصية
-    newItem.uid = user.uid; // نضيف هوية المالك الجديد
+    newItem.templateId = templateItem.id;
+    delete newItem.id;
+    newItem.uid = user.uid;
 
     this.itemsService
       .addItem(newItem)
@@ -97,27 +89,16 @@ export class DashboardComponent implements OnInit {
       .catch((err) => console.error(err));
   }
 
-  /**
-   * دالة مساعدة للتحقق مما إذا كانت القطعة موجودة بالفعل في خزانة المستخدم
-   * (لتغيير حالة زر الإضافة إلى "Added ✓")
-   */
-  isItemInWardrobe(itemName: string): boolean {
-    return this.userWardrobe.some((item) => item.name === itemName);
+  isItemInWardrobe(templateId: string | undefined): boolean {
+    if (!templateId) return false;
+    return this.userWardrobe.some((item) => item.templateId === templateId);
   }
 
-  // --- دوال خاصة بفورم المدير ---
-
-  /**
-   * تلتقط الملف عند اختياره من حقل رفع الصور
-   */
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) this.selectedFile = file;
   }
 
-  /**
-   * تُنفذ عند الضغط على زر الإضافة في لوحة تحكم المدير
-   */
   async onAddTemplateSubmit(): Promise<void> {
     if (this.templateItemForm.invalid || !this.selectedFile) {
       alert('Please fill all fields and select an image.');
@@ -130,7 +111,6 @@ export class DashboardComponent implements OnInit {
         ...this.templateItemForm.value,
         imageUrl: imageUrl,
       };
-      // استدعاء الدالة التي تضيف إلى القائمة العامة
       await this.itemsService.addTemplateItem(newItem);
 
       alert('Template item added successfully!');

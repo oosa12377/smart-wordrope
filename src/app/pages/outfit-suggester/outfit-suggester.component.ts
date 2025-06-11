@@ -1,18 +1,18 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ItemsService, Item } from '../../services/items.service';
-import { GeminiService } from '../../services/gemini.service'; // تأكد من استيراد الخدمة
+import { GeminiService } from '../../services/gemini.service';
 
 @Component({
   selector: 'app-outfit-suggester',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './outfit-suggester.component.html',
-  styleUrls: ['./outfit-suggester.component.css']
+  styleUrls: ['./outfit-suggester.component.css'],
 })
 export class OutfitSuggesterComponent implements OnInit {
   private itemsService = inject(ItemsService);
-  private geminiService = inject(GeminiService); 
+  private geminiService = inject(GeminiService);
 
   allItems: Item[] = [];
   suggestedOutfit: Item[] = [];
@@ -20,37 +20,74 @@ export class OutfitSuggesterComponent implements OnInit {
   isAiLoading = false;
 
   ngOnInit(): void {
-    this.itemsService.getItems().subscribe(items => {
+    this.itemsService.getItems().subscribe((items) => {
       this.allItems = items;
       this.isLoading = false;
     });
   }
 
+  /**
+   * ## 2. ميزة الاقتراح العشوائي المطور (حسب الستايل)
+   */
   suggestOutfit(): void {
-    if (this.allItems.length < 3) {
-      alert('You need at least one Top, one Bottom, and one pair of Shoes to get a suggestion.');
-      return;
-    }
-    const tops = this.allItems.filter(item => item.type === 'Top');
-    const bottoms = this.allItems.filter(item => item.type === 'Bottom');
-    const shoes = this.allItems.filter(item => item.type === 'Shoes');
-
-    if (tops.length === 0 || bottoms.length === 0 || shoes.length === 0) {
-      alert("Outfit suggestion requires at least one 'Top', one 'Bottom', and one 'Shoes'. Please categorize your items correctly.");
+    if (this.allItems.length < 2) {
+      alert('You need more items to get a good suggestion.');
       return;
     }
 
+    // 1. احصل على كل الستايلات المتاحة في الخزانة بدون تكرار
+    const availableStyles = [
+      ...new Set(this.allItems.map((item) => item.style).filter(Boolean)),
+    ];
+    if (availableStyles.length === 0) {
+      alert('Please add styles to your items for better suggestions.');
+      return;
+    }
+
+    // 2. اختر ستايل واحد بشكل عشوائي
+    const randomStyle =
+      availableStyles[Math.floor(Math.random() * availableStyles.length)];
+    console.log(`Suggesting a "${randomStyle}" outfit...`);
+
+    // 3. قم بفلترة الملابس التي تنتمي لهذا الستايل فقط
+    const tops = this.allItems.filter(
+      (item) => item.type === 'Top' && item.style === randomStyle
+    );
+    const bottoms = this.allItems.filter(
+      (item) => item.type === 'Bottom' && item.style === randomStyle
+    );
+    const shoes = this.allItems.filter(
+      (item) => item.type === 'Shoes' && item.style === randomStyle
+    );
+
+    if (tops.length === 0 || bottoms.length === 0) {
+      alert(
+        `Could not find a complete outfit for the style "${randomStyle}". Please add more items or try again.`
+      );
+      return;
+    }
+
+    // 4. اختر قطعة عشوائية من كل قائمة отфильтрованная
     const randomTop = tops[Math.floor(Math.random() * tops.length)];
     const randomBottom = bottoms[Math.floor(Math.random() * bottoms.length)];
-    const randomShoes = shoes[Math.floor(Math.random() * shoes.length)];
 
-    this.suggestedOutfit = [randomTop, randomBottom, randomShoes];
+    const suggested = [randomTop, randomBottom];
+
+    // إذا كانت هناك أحذية متاحة بنفس الستايل، أضف قطعة منها
+    if (shoes.length > 0) {
+      const randomShoes = shoes[Math.floor(Math.random() * shoes.length)];
+      suggested.push(randomShoes);
+    }
+
+    this.suggestedOutfit = suggested;
   }
 
+  /**
+   * ## 3. ميزة الاقتراح بالذكاء الاصطناعي مع إصلاح الخطأ
+   */
   suggestOutfitWithAi(): void {
     if (this.allItems.length < 3) {
-      alert('AI suggestion requires a good selection of items.');
-      return;
+      /* ... */
     }
     this.isAiLoading = true;
     this.suggestedOutfit = [];
@@ -58,11 +95,34 @@ export class OutfitSuggesterComponent implements OnInit {
     this.geminiService.generateOutfitSuggestion(this.allItems).subscribe({
       next: (response: any) => {
         try {
-          const responseText = response.candidates[0].content.parts[0].text;
+          let responseText = response.candidates[0].content.parts[0].text;
+          responseText = responseText
+            .replace(/```json/g, '')
+            .replace(/```/g, '')
+            .trim();
           const suggestedItemNames: string[] = JSON.parse(responseText);
-          this.suggestedOutfit = this.allItems.filter(item => 
+
+          // --- (2) هذا هو فلتر الأمان الجديد ---
+          // ابحث عن كل القطع التي اقترحها الـ AI
+          const rawAiItems = this.allItems.filter((item) =>
             suggestedItemNames.includes(item.name)
           );
+
+          // الآن، اختر قطعة واحدة فقط من كل نوع مطلوب
+          const finalTop = rawAiItems.find((item) => item.type === 'Top');
+          const finalBottom = rawAiItems.find((item) => item.type === 'Bottom');
+          const finalShoes = rawAiItems.find((item) => item.type === 'Shoes');
+
+          // قم بتجميع الطقم النهائي وتجاهل أي قيم فارغة (إذا لم يجد نوعًا معينًا)
+          this.suggestedOutfit = [finalTop, finalBottom, finalShoes].filter(
+            Boolean
+          ) as Item[];
+
+          // تحقق إذا كان الطقم غير مكتمل
+          if (this.suggestedOutfit.length < 3) {
+            console.warn('AI suggestion was incomplete after filtering.');
+            // يمكنك هنا إظهار رسالة للمستخدم أو محاولة اقتراح عشوائي كخطة بديلة
+          }
         } catch (error) {
           console.error('Error parsing AI response:', error);
           alert('The AI returned an unexpected response. Please try again.');
@@ -71,10 +131,8 @@ export class OutfitSuggesterComponent implements OnInit {
         }
       },
       error: (err: any) => {
-        console.error('Error from AI service:', err);
-        alert('An error occurred while contacting the AI service.');
-        this.isAiLoading = false;
-      }
+        /* ... */
+      },
     });
   }
 }
