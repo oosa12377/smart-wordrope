@@ -1,0 +1,98 @@
+<div class="container mt-4">
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header">
+      <h4 class="my-0 fw-normal">Add New Item</h4>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="addItemForm" (ngSubmit)="onSubmit()">
+        <div class="row align-items-end">
+          <div class="col-md-3 mb-3">
+            <label for="name" class="form-label">Item Name</label>
+            <input type="text" id="name" class="form-control" formControlName="name" placeholder="e.g., T-Shirt">
+          </div>
+          <div class="col-md-2 mb-3">
+            <label for="type" class="form-label">Item Type</label>
+            <select id="type" class="form-select" formControlName="type">
+              <option value="" disabled>Select type...</option>
+              <option *ngFor="let type of itemTypes" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+          <div class="col-md-2 mb-3">
+            <label for="style" class="form-label">Style</label>
+            <select id="style" class="form-select" formControlName="style">
+              <option value="" disabled>Select style...</option>
+              <option *ngFor="let style of styles" [value]="style">{{ style }}</option>
+            </select>
+          </div>
+          <div class="col-md-2 mb-3">
+            <label for="color" class="form-label">Color</label>
+            <select id="color" class="form-select" formControlName="color">
+              <option value="" disabled>Select color...</option>
+              <option *ngFor="let color of colors" [value]="color">{{ color }}</option>
+            </select>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="fileInput" class="form-label">Item Image</label>
+            <input 
+              type="file" 
+              id="fileInput" 
+              class="form-control" 
+              (change)="onFileSelected($event)"
+              accept="image/*"
+            >
+            <small *ngIf="selectedFile" class="form-text text-muted mt-1 d-block">
+              Selected: {{ selectedFile.name }}
+            </small>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 mt-3" [disabled]="addItemForm.invalid || isLoading || !selectedFile">
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          {{ isLoading ? 'Adding...' : 'Add Item' }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h4 class="my-0 fw-normal">My Wardrobe</h4>
+      <li class="nav-item">
+          <a class="nav-link" routerLinkActive="active" routerLink="/outfit">Suggest Outfit</a>
+        </li>
+    </div>
+    <div class="card-body">
+      <ng-container *ngIf="items$ | async as items; else loading">
+        <div *ngIf="items.length > 0; else noItems" class="row">
+          <div *ngFor="let item of items" class="col-md-4 col-lg-3 mb-4">
+            <div class="card h-100 text-center">
+              <img [src]="item.imageUrl" class="card-img-top" [alt]="item.name" style="height: 200px; object-fit: cover;">
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ item.name }}</h5>
+                <p class="card-text text-muted">{{ item.type }}</p>
+                <div *ngIf="item.style || item.color" class="mb-2">
+                  <span *ngIf="item.style" class="badge bg-info me-1">{{ item.style }}</span>
+                  <span *ngIf="item.color" class="badge" [style.background-color]="item.color.toLowerCase()">{{ item.color }}</span>
+                </div>
+                <button class="btn btn-sm btn-outline-danger mt-auto" (click)="onDelete(item.id)">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #noItems>
+        <p class="text-center text-muted">Your wardrobe is empty. Add some items using the form above!</p>
+      </ng-template>
+
+      <ng-template #loading>
+        <div class="d-flex justify-content-center p-5">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
