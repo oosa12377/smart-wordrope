@@ -1,5 +1,7 @@
 export const environment = {
   production: true,
+  geminiApiKey: 'AIzaSyCk3cPvsbGWXOec2T4n3sJZr6NbJ2YgC6o',
+
   firebase: {
     apiKey: 'AIzaSyBxUS4bblQ2-R-BTj_jsH2PjLCpAf6zFuk',
     authDomain: 'smart-wardrobe-4df02.firebaseapp.com',
