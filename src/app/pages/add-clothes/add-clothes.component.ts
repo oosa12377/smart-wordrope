@@ -1,15 +1,21 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { Observable } from 'rxjs';
 import { ItemsService, Item } from '../../services/items.service';
 import { StorageService } from '../../services/storage.service';
 import { Auth } from '@angular/fire/auth';
-
+import { map } from 'rxjs';
+import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-add-clothes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './add-clothes.component.html',
   styleUrls: ['./add-clothes.component.css'],
 })
@@ -21,25 +27,48 @@ export class AddClothesComponent implements OnInit {
 
   itemTypes: string[] = ['Top', 'Bottom', 'Shoes', 'Jacket', 'Accessory'];
   styles: string[] = ['Casual', 'Formal', 'Sport', 'Smart Casual', 'Vintage'];
-  colors: string[] = ['Black', 'White', 'Blue', 'Red', 'Green', 'Beige', 'Gray', 'Brown', 'Pink'];
-  
-  items$!: Observable<Item[]>;
+  colors: string[] = [
+    'Black',
+    'White',
+    'Blue',
+    'Red',
+    'Green',
+    'Beige',
+    'Gray',
+    'Brown',
+    'Pink',
+  ];
+
+  groupedItems$!: Observable<{ [key: string]: Item[] }>;
   addItemForm!: FormGroup;
   isLoading = false;
   selectedFile: File | null = null;
 
+  objectKeys = Object.keys;
+
   ngOnInit(): void {
     this.addItemForm = this.fb.group({
       name: ['', Validators.required],
-      type: ['', Validators.required], 
+      type: ['', Validators.required],
       style: ['', Validators.required],
       color: ['', Validators.required],
     });
     this.fetchItems();
   }
-  
+
   fetchItems(): void {
-    this.items$ = this.itemsService.getItems();
+    this.groupedItems$ = this.itemsService.getItems().pipe(
+      map((items) => {
+        return items.reduce((accumulator, currentItem) => {
+          const key = currentItem.type || 'Uncategorized';
+          if (!accumulator[key]) {
+            accumulator[key] = [];
+          }
+          accumulator[key].push(currentItem);
+          return accumulator;
+        }, {} as { [key: string]: Item[] });
+      })
+    );
   }
 
   onFileSelected(event: any): void {
@@ -60,7 +89,7 @@ export class AddClothesComponent implements OnInit {
       alert('You must be logged in to add items.');
       return;
     }
-    
+
     this.isLoading = true;
 
     try {
@@ -77,14 +106,15 @@ export class AddClothesComponent implements OnInit {
       };
 
       await this.itemsService.addItem(newItem);
-      
+
       console.log('Item added successfully!');
       this.addItemForm.reset();
       this.selectedFile = null;
-      
-      const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
 
+      const fileInput = document.getElementById(
+        'fileInput'
+      ) as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
     } catch (error) {
       console.error('Error adding item:', error);
       alert('Failed to add item. Please try again.');
@@ -97,9 +127,10 @@ export class AddClothesComponent implements OnInit {
     if (!itemId) return;
 
     if (confirm('Are you sure you want to delete this item?')) {
-      this.itemsService.deleteItem(itemId)
+      this.itemsService
+        .deleteItem(itemId)
         .then(() => console.log('Item deleted successfully!'))
-        .catch(err => console.error('Error deleting item:', err));
+        .catch((err) => console.error('Error deleting item:', err));
     }
   }
 }

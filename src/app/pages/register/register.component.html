@@ -2,10 +2,10 @@
   <div class="auth-card">
     <h2>Create Account</h2>
     <p class="auth-subtitle">Join us and start building your smart wardrobe.</p>
-    
+
     <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
       <div class="form-group">
-        <label for="displayName">Display Name</label>
+        <label for="displayName">Full Name</label>
         <input
           id="displayName"
           type="text"
@@ -34,13 +34,21 @@
           placeholder="Create a password (min. 6 characters)"
         />
       </div>
-      
+
       <div class="error-message" *ngIf="errorMessage">
         {{ errorMessage }}
       </div>
 
-      <button type="submit" class="auth-button" [disabled]="isLoading || registerForm.invalid">
-        <span *ngIf="isLoading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <button
+        type="submit"
+        class="auth-button"
+        [disabled]="isLoading || registerForm.invalid"
+      >
+        <span
+          *ngIf="isLoading"
+          class="spinner-border spinner-border-sm"
+          aria-hidden="true"
+        ></span>
         <span *ngIf="!isLoading">Create Account</span>
       </button>
 

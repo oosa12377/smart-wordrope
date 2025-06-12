@@ -1,6 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 
@@ -38,11 +43,12 @@ export class LoginComponent implements OnInit {
 
     const { email, password } = this.loginForm.value;
 
-    this.authService.login(email, password)
+    this.authService
+      .login(email, password)
       .then((userCredential) => {
         this.isLoading = false;
         console.log('User logged in successfully:', userCredential.user);
-        this.router.navigate(['/add-clothes'] );   
+        this.router.navigate(['/dashboard']);
       })
       .catch((error) => {
         this.isLoading = false;
@@ -57,7 +63,8 @@ export class LoginComponent implements OnInit {
         this.errorMessage = 'Invalid email or password.';
         break;
       case 'auth/too-many-requests':
-        this.errorMessage = 'Access to this account has been temporarily disabled due to many failed login attempts.';
+        this.errorMessage =
+          'Access to this account has been temporarily disabled due to many failed login attempts.';
         break;
       default:
         this.errorMessage = 'An unexpected error occurred. Please try again.';

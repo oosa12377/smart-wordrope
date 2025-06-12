@@ -12,6 +12,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { StorageService } from '../../services/storage.service';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,10 +28,9 @@ export class DashboardComponent implements OnInit {
   private fb = inject(FormBuilder);
   private storageService = inject(StorageService);
 
-  // --- خصائص لعرض البيانات ---
   currentUser$: Observable<User | null>;
   userWardrobe: Item[] = [];
-  templateItems$!: Observable<Item[]>;
+  groupedTemplateItems$!: Observable<{ [key: string]: Item[] }>;
 
   adminUid = 'UjifE846uXOMn6QgqwSAqfxcAq42'; //  userid admin
   templateItemForm!: FormGroup;
@@ -50,20 +50,30 @@ export class DashboardComponent implements OnInit {
     'Brown',
     'Pink',
   ];
+  objectKeys = Object.keys;
 
   constructor() {
     this.currentUser$ = this.authService.authState$;
   }
 
   ngOnInit(): void {
-    // جلب خزانة ملابس المستخدم الحالية (لمعرفة ما يملكه بالفعل)
     this.itemsService
       .getItems()
       .subscribe((items) => (this.userWardrobe = items));
-    // جلب قائمة الملابس العامة لعرضها
-    this.templateItems$ = this.itemsService.getTemplateItems();
 
-    // تهيئة فورم المدير
+    this.groupedTemplateItems$ = this.itemsService.getTemplateItems().pipe(
+      map((items) => {
+        return items.reduce((accumulator, currentItem) => {
+          const key = currentItem.type || 'Uncategorized';
+          if (!accumulator[key]) {
+            accumulator[key] = [];
+          }
+          accumulator[key].push(currentItem);
+          return accumulator;
+        }, {} as { [key: string]: Item[] });
+      })
+    );
+
     this.templateItemForm = this.fb.group({
       name: ['', Validators.required],
       type: ['', Validators.required],

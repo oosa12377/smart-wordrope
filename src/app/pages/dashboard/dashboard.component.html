@@ -10,9 +10,9 @@
       You have
       <span class="badge bg-primary fs-6">{{ userWardrobe.length }}</span> items
       in your wardrobe.
-      <a routerLink="/outfit" class="btn btn-success ms-3"
-        >✨ Suggest an Outfit</a
-      >
+      <a routerLink="/add-clothes" class="btn btn-success ms-3"
+        >go to my wordrobe
+      </a>
     </p>
   </div>
 
@@ -96,48 +96,55 @@
       >
     </div>
     <div class="card-body">
-      <ng-container *ngIf="templateItems$ | async as templates; else loading">
-        <div *ngIf="templates.length > 0; else noTemplates" class="row">
-          <div
-            *ngFor="let template of templates"
-            class="col-md-4 col-lg-3 mb-4"
-          >
-            <div class="card h-100 text-center">
-              <img
-                [src]="template.imageUrl"
-                class="card-img-top"
-                [alt]="template.name"
-                style="height: 200px; object-fit: cover"
-              />
-              <div class="card-body d-flex flex-column">
-                <h5 class="card-title">{{ template.name }}</h5>
-                <p class="card-text text-muted">
-                  <span *ngIf="template.style" class="badge bg-info me-1">{{
-                    template.style
-                  }}</span>
-                  <span
-                    *ngIf="template.color"
-                    class="badge"
-                    [style.background-color]="template.color.toLowerCase()"
-                    >{{ template.color }}</span
-                  >
-                </p>
-                <button
-                  class="btn mt-auto"
-                  [ngClass]="
-                    isItemInWardrobe(template.id)
-                      ? 'btn-secondary disabled'
-                      : 'btn-primary'
-                  "
-                  (click)="addItemFromTemplate(template)"
-                  [disabled]="isItemInWardrobe(template.id)"
-                >
-                  {{
-                    isItemInWardrobe(template.id)
-                      ? "Added ✓"
-                      : "Add to My Wardrobe"
-                  }}
-                </button>
+      <ng-container
+        *ngIf="groupedTemplateItems$ | async as groupedItems; else loading"
+      >
+        <div *ngIf="objectKeys(groupedItems).length > 0; else noTemplates">
+          <div *ngFor="let category of objectKeys(groupedItems)" class="mb-5">
+            <h2 class="display-6 border-bottom pb-2 mb-3">{{ category }}</h2>
+            <div class="row">
+              <div
+                *ngFor="let template of groupedItems[category]"
+                class="col-md-4 col-lg-3 mb-4"
+              >
+                <div class="card h-100 text-center">
+                  <img
+                    [src]="template.imageUrl"
+                    class="card-img-top"
+                    [alt]="template.name"
+                    style="height: 200px; object-fit: cover"
+                  />
+                  <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ template.name }}</h5>
+                    <p class="card-text text-muted">
+                      <span *ngIf="template.style" class="badge bg-info me-1">{{
+                        template.style
+                      }}</span>
+                      <span
+                        *ngIf="template.color"
+                        class="badge"
+                        [style.background-color]="template.color.toLowerCase()"
+                        >{{ template.color }}</span
+                      >
+                    </p>
+                    <button
+                      class="btn mt-auto"
+                      [ngClass]="
+                        isItemInWardrobe(template.id)
+                          ? 'btn-secondary disabled'
+                          : 'btn-primary'
+                      "
+                      (click)="addItemFromTemplate(template)"
+                      [disabled]="isItemInWardrobe(template.id)"
+                    >
+                      {{
+                        isItemInWardrobe(template.id)
+                          ? "Added ✓"
+                          : "Add to My Wardrobe"
+                      }}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
