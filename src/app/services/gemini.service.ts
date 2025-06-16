@@ -13,9 +13,9 @@ export class GeminiService {
 
   constructor() {}
 
-  // الدالة التي تأخذ قائمة الملابس وترسلها للـ AI
-  generateOutfitSuggestion(items: Item[]): Observable<any> {
-    // 1. نقوم بتجهيز بيانات الملابس لإرسالها (نختار فقط الحقول المهمة)
+  // (!!!) This is the corrected function definition (!!!)
+  // It now accepts a second, optional 'style' parameter.
+  generateOutfitSuggestion(items: Item[], style?: string): Observable<any> {
     const simplifiedItems = items.map((item) => ({
       name: item.name,
       type: item.type,
@@ -23,20 +23,25 @@ export class GeminiService {
       style: item.style,
     }));
 
-    // 2. نقوم ببناء السؤال (Prompt) الذي سيفهمه الذكاء الاصطناعي
+    // Create a style constraint only if a style is selected
+    const styleConstraint = style
+      ? `The outfit style MUST be '${style}'.`
+      : 'The outfit should have a consistent and stylish theme.';
+
     const prompt = `
-    You are an expert fashion stylist.
-    Based on the following list of available clothes in JSON format, suggest a complete and stylish outfit.
+      You are an expert fashion stylist.
+      Based on the following list of available clothes in JSON format, suggest a complete and stylish outfit.
+      ${styleConstraint}
 
-    The outfit MUST contain EXACTLY ONE item of type 'Top', EXACTLY ONE item of type 'Bottom', and EXACTLY ONE item of type 'Shoes'.
-    
-    Here are the available clothes:
-    ${JSON.stringify(simplifiedItems)}
+      The outfit MUST contain EXACTLY ONE item of type 'Top', EXACTLY ONE item of type 'Bottom', and EXACTLY ONE item of type 'Shoes'.
+      
+      Here are the available clothes:
+      ${JSON.stringify(simplifiedItems)}
 
-    Your response MUST be ONLY a valid JSON array of strings containing the exact 'name' of the three selected items.
-    Example of a perfect response: ["Classic Blue Jeans", "White Cotton T-Shirt", "Black Leather Sneakers"]
-    Do NOT include more than one item of the same type. Do not include any other text, explanation, or markdown formatting.
-  `;
+      Your response MUST be ONLY a valid JSON array of strings containing the exact 'name' of the three selected items.
+      Example of a perfect response: ["Classic Blue Jeans", "White Cotton T-Shirt", "Black Leather Sneakers"]
+      Do NOT include any other text, explanation, or markdown formatting.
+    `;
 
     const requestBody = {
       contents: [
@@ -48,6 +53,12 @@ export class GeminiService {
           ],
         },
       ],
+      generationConfig: {
+        temperature: 0.8,
+        topK: 1,
+        topP: 1,
+        maxOutputTokens: 2048,
+      },
     };
 
     return this.http.post<any>(this.apiUrl, requestBody);

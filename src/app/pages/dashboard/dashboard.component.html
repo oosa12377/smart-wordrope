@@ -10,9 +10,9 @@
       You have
       <span class="badge bg-primary fs-6">{{ userWardrobe.length }}</span> items
       in your wardrobe.
-      <a routerLink="/add-clothes" class="btn btn-success ms-3"
-        >go to my wordrobe
-      </a>
+      <a routerLink="/outfit" class="btn btn-success ms-3"
+        >✨ Suggest an Outfit</a
+      >
     </p>
   </div>
 
@@ -127,22 +127,32 @@
                         >{{ template.color }}</span
                       >
                     </p>
-                    <button
-                      class="btn mt-auto"
-                      [ngClass]="
-                        isItemInWardrobe(template.id)
-                          ? 'btn-secondary disabled'
-                          : 'btn-primary'
-                      "
-                      (click)="addItemFromTemplate(template)"
-                      [disabled]="isItemInWardrobe(template.id)"
-                    >
-                      {{
-                        isItemInWardrobe(template.id)
-                          ? "Added ✓"
-                          : "Add to My Wardrobe"
-                      }}
-                    </button>
+                    <div class="mt-auto">
+                      <button
+                        class="btn btn-sm"
+                        [ngClass]="
+                          isItemInWardrobe(template.id)
+                            ? 'btn-secondary disabled'
+                            : 'btn-primary'
+                        "
+                        (click)="addItemFromTemplate(template)"
+                        [disabled]="isItemInWardrobe(template.id)"
+                      >
+                        {{
+                          isItemInWardrobe(template.id)
+                            ? "Added ✓"
+                            : "Add to My Wardrobe"
+                        }}
+                      </button>
+                      <button
+                        *ngIf="(currentUser$ | async)?.uid === adminUid"
+                        (click)="onDeleteTemplateItem(template.id)"
+                        class="btn btn-sm btn-outline-danger ms-2"
+                        title="Admin Delete"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

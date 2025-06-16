@@ -57,10 +57,12 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Fetch the user's personal wardrobe to check for existing items
     this.itemsService
       .getItems()
       .subscribe((items) => (this.userWardrobe = items));
 
+    // Fetch and group the public template items by category
     this.groupedTemplateItems$ = this.itemsService.getTemplateItems().pipe(
       map((items) => {
         return items.reduce((accumulator, currentItem) => {
@@ -74,6 +76,7 @@ export class DashboardComponent implements OnInit {
       })
     );
 
+    // Initialize the admin panel form
     this.templateItemForm = this.fb.group({
       name: ['', Validators.required],
       type: ['', Validators.required],
@@ -82,6 +85,9 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  // --- Methods for Regular Users ---
+
+  /** Adds a template item to the user's personal wardrobe */
   addItemFromTemplate(templateItem: Item) {
     const user = this.auth.currentUser;
     if (!user) {
@@ -89,8 +95,8 @@ export class DashboardComponent implements OnInit {
       return;
     }
     const newItem: Item = { ...templateItem };
-    newItem.templateId = templateItem.id;
-    delete newItem.id;
+    newItem.templateId = templateItem.id; // Save the original template ID
+    delete newItem.id; // Delete the original ID before creating a new document
     newItem.uid = user.uid;
 
     this.itemsService
@@ -99,16 +105,21 @@ export class DashboardComponent implements OnInit {
       .catch((err) => console.error(err));
   }
 
+  /** Checks if a template item is already in the user's wardrobe */
   isItemInWardrobe(templateId: string | undefined): boolean {
     if (!templateId) return false;
     return this.userWardrobe.some((item) => item.templateId === templateId);
   }
 
+  // --- Methods for the Admin Panel ---
+
+  /** Captures the selected file from the admin form's file input */
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) this.selectedFile = file;
   }
 
+  /** Handles the submission of the admin's "Add Template" form */
   async onAddTemplateSubmit(): Promise<void> {
     if (this.templateItemForm.invalid || !this.selectedFile) {
       alert('Please fill all fields and select an image.');
@@ -135,6 +146,27 @@ export class DashboardComponent implements OnInit {
       alert('Failed to add template item.');
     } finally {
       this.isUploading = false;
+    }
+  }
+
+  /** Handles the deletion of a public template item (admin only) */
+  onDeleteTemplateItem(templateId: string | undefined): void {
+    if (!templateId) {
+      console.error('Template ID is missing.');
+      return;
+    }
+    if (
+      confirm(
+        'Are you sure you want to permanently delete this public template item?'
+      )
+    ) {
+      this.itemsService
+        .deleteTemplateItem(templateId)
+        .then(() => console.log('Template item deleted successfully!'))
+        .catch((err) => {
+          console.error('Error deleting template item:', err);
+          alert('Failed to delete template item.');
+        });
     }
   }
 }

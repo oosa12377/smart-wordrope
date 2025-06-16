@@ -12,7 +12,6 @@ import {
 import { Auth } from '@angular/fire/auth';
 import { Observable, of } from 'rxjs';
 
-// The Item interface remains the same
 export interface Item {
   id?: string;
   name: string;
@@ -64,6 +63,12 @@ export class ItemsService {
   // Deletes an item from the user's personal wardrobe
   deleteItem(itemId: string) {
     const itemDoc = doc(this.firestore, `items/${itemId}`);
+    return deleteDoc(itemDoc);
+  }
+
+  // Deletes an item from the public template collection
+  deleteTemplateItem(templateId: string) {
+    const itemDoc = doc(this.firestore, `templateItems/${templateId}`);
     return deleteDoc(itemDoc);
   }
 }

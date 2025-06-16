@@ -1,12 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // Required for ngModel
 import { ItemsService, Item } from '../../services/items.service';
 import { GeminiService } from '../../services/gemini.service';
 
 @Component({
   selector: 'app-outfit-suggester',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule], // Ensure FormsModule is imported
   templateUrl: './outfit-suggester.component.html',
   styleUrls: ['./outfit-suggester.component.css'],
 })
@@ -14,12 +15,18 @@ export class OutfitSuggesterComponent implements OnInit {
   private itemsService = inject(ItemsService);
   private geminiService = inject(GeminiService);
 
+  // --- State Properties ---
   allItems: Item[] = [];
   suggestedOutfit: Item[] = [];
-  isLoading = true;
-  isAiLoading = false;
+  isLoading = true; // For initial data loading
+  isAiLoading = false; // For the AI suggestion process
+
+  // --- Filter Properties ---
+  styles: string[] = ['Casual', 'Formal', 'Sport', 'Smart Casual', 'Vintage'];
+  selectedStyle: string = ''; // Bound to the dropdown in the HTML
 
   ngOnInit(): void {
+    // Fetch all of the user's items when the component loads
     this.itemsService.getItems().subscribe((items) => {
       this.allItems = items;
       this.isLoading = false;
@@ -27,7 +34,9 @@ export class OutfitSuggesterComponent implements OnInit {
   }
 
   /**
-   * ## 2. ميزة الاقتراح العشوائي المطور (حسب الستايل)
+   * Generates a style-matched "random" outfit.
+   * If a style is selected, it uses that style.
+   * If not, it picks a random style from the user's wardrobe.
    */
   suggestOutfit(): void {
     if (this.allItems.length < 2) {
@@ -35,21 +44,23 @@ export class OutfitSuggesterComponent implements OnInit {
       return;
     }
 
-    // 1. احصل على كل الستايلات المتاحة في الخزانة بدون تكرار
-    const availableStyles = [
-      ...new Set(this.allItems.map((item) => item.style).filter(Boolean)),
-    ];
-    if (availableStyles.length === 0) {
+    // Determine which styles to consider based on the user's selection
+    const stylesToConsider = this.selectedStyle
+      ? [this.selectedStyle]
+      : [...new Set(this.allItems.map((item) => item.style).filter(Boolean))];
+
+    if (stylesToConsider.length === 0) {
       alert('Please add styles to your items for better suggestions.');
       return;
     }
 
-    // 2. اختر ستايل واحد بشكل عشوائي
+    // Pick a style from the pool of styles to consider
     const randomStyle =
-      availableStyles[Math.floor(Math.random() * availableStyles.length)];
+      stylesToConsider[Math.floor(Math.random() * stylesToConsider.length)];
+
     console.log(`Suggesting a "${randomStyle}" outfit...`);
 
-    // 3. قم بفلترة الملابس التي تنتمي لهذا الستايل فقط
+    // Filter items based on the chosen style
     const tops = this.allItems.filter(
       (item) => item.type === 'Top' && item.style === randomStyle
     );
@@ -62,18 +73,18 @@ export class OutfitSuggesterComponent implements OnInit {
 
     if (tops.length === 0 || bottoms.length === 0) {
       alert(
-        `Could not find a complete outfit for the style "${randomStyle}". Please add more items or try again.`
+        `Could not find a complete outfit for the style "${randomStyle}". Please add more items with this style or try again.`
       );
       return;
     }
 
-    // 4. اختر قطعة عشوائية من كل قائمة отфильтрованная
+    // Select a random item from each filtered category
     const randomTop = tops[Math.floor(Math.random() * tops.length)];
     const randomBottom = bottoms[Math.floor(Math.random() * bottoms.length)];
 
     const suggested = [randomTop, randomBottom];
 
-    // إذا كانت هناك أحذية متاحة بنفس الستايل، أضف قطعة منها
+    // Add shoes if available in the same style
     if (shoes.length > 0) {
       const randomShoes = shoes[Math.floor(Math.random() * shoes.length)];
       suggested.push(randomShoes);
@@ -83,56 +94,68 @@ export class OutfitSuggesterComponent implements OnInit {
   }
 
   /**
-   * ## 3. ميزة الاقتراح بالذكاء الاصطناعي مع إصلاح الخطأ
+   * Generates an outfit using the Gemini AI, respecting the selected style.
    */
   suggestOutfitWithAi(): void {
     if (this.allItems.length < 3) {
-      /* ... */
+      alert('AI suggestion requires a good selection of items.');
+      return;
     }
     this.isAiLoading = true;
-    this.suggestedOutfit = [];
+    this.suggestedOutfit = []; // Clear previous suggestion
 
-    this.geminiService.generateOutfitSuggestion(this.allItems).subscribe({
-      next: (response: any) => {
-        try {
-          let responseText = response.candidates[0].content.parts[0].text;
-          responseText = responseText
-            .replace(/```json/g, '')
-            .replace(/```/g, '')
-            .trim();
-          const suggestedItemNames: string[] = JSON.parse(responseText);
+    // Call the service, passing the selected style
+    this.geminiService
+      .generateOutfitSuggestion(this.allItems, this.selectedStyle)
+      .subscribe({
+        next: (response: any) => {
+          try {
+            // 1. Get the raw text response from the AI
+            let responseText = response.candidates[0].content.parts[0].text;
 
-          // --- (2) هذا هو فلتر الأمان الجديد ---
-          // ابحث عن كل القطع التي اقترحها الـ AI
-          const rawAiItems = this.allItems.filter((item) =>
-            suggestedItemNames.includes(item.name)
-          );
+            // 2. Clean the text from markdown formatting
+            responseText = responseText
+              .replace(/```json/g, '')
+              .replace(/```/g, '')
+              .trim();
 
-          // الآن، اختر قطعة واحدة فقط من كل نوع مطلوب
-          const finalTop = rawAiItems.find((item) => item.type === 'Top');
-          const finalBottom = rawAiItems.find((item) => item.type === 'Bottom');
-          const finalShoes = rawAiItems.find((item) => item.type === 'Shoes');
+            // 3. Parse the clean text into an array of names
+            const suggestedItemNames: string[] = JSON.parse(responseText);
 
-          // قم بتجميع الطقم النهائي وتجاهل أي قيم فارغة (إذا لم يجد نوعًا معينًا)
-          this.suggestedOutfit = [finalTop, finalBottom, finalShoes].filter(
-            Boolean
-          ) as Item[];
+            // 4. Find the full item objects that match the names suggested by the AI
+            const rawAiItems = this.allItems.filter((item) =>
+              suggestedItemNames.includes(item.name)
+            );
 
-          // تحقق إذا كان الطقم غير مكتمل
-          if (this.suggestedOutfit.length < 3) {
-            console.warn('AI suggestion was incomplete after filtering.');
-            // يمكنك هنا إظهار رسالة للمستخدم أو محاولة اقتراح عشوائي كخطة بديلة
+            // 5. Apply a "Safety Filter" to ensure one of each type
+            const finalTop = rawAiItems.find((item) => item.type === 'Top');
+            const finalBottom = rawAiItems.find(
+              (item) => item.type === 'Bottom'
+            );
+            const finalShoes = rawAiItems.find((item) => item.type === 'Shoes');
+
+            // Assemble the final outfit, filtering out any undefined values
+            this.suggestedOutfit = [finalTop, finalBottom, finalShoes].filter(
+              Boolean
+            ) as Item[];
+
+            if (this.suggestedOutfit.length < 2) {
+              // Check for at least a top and bottom
+              console.warn('AI suggestion was incomplete after filtering.');
+              alert('The AI gave a partial suggestion. Please try again!');
+            }
+          } catch (error) {
+            console.error('Error parsing AI response:', error);
+            alert('The AI returned an unexpected response. Please try again.');
+          } finally {
+            this.isAiLoading = false;
           }
-        } catch (error) {
-          console.error('Error parsing AI response:', error);
-          alert('The AI returned an unexpected response. Please try again.');
-        } finally {
+        },
+        error: (err: any) => {
+          console.error('Error from AI service:', err);
+          alert('An error occurred while contacting the AI service.');
           this.isAiLoading = false;
-        }
-      },
-      error: (err: any) => {
-        /* ... */
-      },
-    });
+        },
+      });
   }
 }
