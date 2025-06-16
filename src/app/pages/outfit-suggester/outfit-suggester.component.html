@@ -4,40 +4,72 @@
       <h2 class="my-2">AI Outfit Suggester</h2>
     </div>
     <div class="card-body p-4 p-md-5">
-      
       <div *ngIf="isLoading" class="d-flex justify-content-center p-5">
-        <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+        <div
+          class="spinner-border"
+          style="width: 3rem; height: 3rem"
+          role="status"
+        >
           <span class="visually-hidden">Loading...</span>
         </div>
       </div>
 
       <ng-container *ngIf="!isLoading">
         <h4 class="card-title">Don't know what to wear?</h4>
-        <p class="card-text lead">Let our smart suggester pick an outfit for you from your wardrobe.</p>
-        
+        <p class="card-text lead">
+          Let our smart suggester pick an outfit for you from your wardrobe.
+        </p>
+
         <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-3 mb-4">
-          <button class="btn btn-lg btn-secondary" (click)="suggestOutfit()" [disabled]="isAiLoading">
-            Suggest Randomly
+          <button
+            class="btn btn-lg btn-success"
+            (click)="suggestOutfit()"
+            [disabled]="isAiLoading"
+          >
+            {{ isAiLoading ? "Thinking..." : "✨ Suggest with AI ✨" }}
           </button>
-  
-          <button class="btn btn-lg btn-success" (click)="suggestOutfitWithAi()" [disabled]="isAiLoading">
-            <span *ngIf="isAiLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            {{ isAiLoading ? 'Thinking...' : '✨ Suggest with AI ✨' }}
+
+          <button
+            class="btn btn-lg btn-secondary"
+            (click)="suggestOutfitWithAi()"
+            [disabled]="isAiLoading"
+          >
+            <span
+              *ngIf="isAiLoading"
+              class="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Suggest Randomly
           </button>
         </div>
 
         <div *ngIf="suggestedOutfit.length > 0" class="mt-4 pt-4 border-top">
           <h3 class="mb-4 text-primary">Today's Look:</h3>
           <div class="row justify-content-center">
-            <div *ngFor="let item of suggestedOutfit" class="col-md-4 col-lg-3 mb-4">
+            <div
+              *ngFor="let item of suggestedOutfit"
+              class="col-md-4 col-lg-3 mb-4"
+            >
               <div class="card h-100 suggestion-card">
-                <img [src]="item.imageUrl" class="card-img-top" [alt]="item.name">
+                <img
+                  [src]="item.imageUrl"
+                  class="card-img-top"
+                  [alt]="item.name"
+                />
                 <div class="card-body">
                   <h5 class="card-title">{{ item.name }}</h5>
                   <p class="card-text text-muted">{{ item.type }}</p>
                   <div *ngIf="item.style || item.color" class="mb-2">
-                    <span *ngIf="item.style" class="badge bg-info me-1">{{ item.style }}</span>
-                    <span *ngIf="item.color" class="badge" [style.background-color]="item.color.toLowerCase()">{{ item.color }}</span>
+                    <span *ngIf="item.style" class="badge bg-info me-1">{{
+                      item.style
+                    }}</span>
+                    <span
+                      *ngIf="item.color"
+                      class="badge"
+                      [style.background-color]="item.color.toLowerCase()"
+                      >{{ item.color }}</span
+                    >
                   </div>
                 </div>
               </div>
@@ -45,7 +77,6 @@
           </div>
         </div>
       </ng-container>
-
     </div>
   </div>
 </div>
