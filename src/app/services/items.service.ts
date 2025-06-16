@@ -23,6 +23,14 @@ export interface Item {
   templateId?: string;
 }
 
+export interface Outfit {
+  id?: string;
+  uid: string;
+  name: string;
+  itemIds: string[];
+  createdAt: any;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -32,6 +40,7 @@ export class ItemsService {
 
   private itemsCollection = collection(this.firestore, 'items');
   private templateItemsCollection = collection(this.firestore, 'templateItems');
+  private outfitsCollection = collection(this.firestore, 'outfits');
 
   // Fetches the current user's items
   getItems(): Observable<Item[]> {
@@ -49,6 +58,42 @@ export class ItemsService {
       idField: 'id',
     }) as Observable<Item[]>;
   }
+
+  //outfit
+  getOutfits(): Observable<Outfit[]> {
+    const user = this.auth.currentUser;
+    if (!user) {
+      return of([]);
+    }
+    const q = query(this.outfitsCollection, where('uid', '==', user.uid));
+    return collectionData(q, { idField: 'id' }) as Observable<Outfit[]>;
+  }
+  saveOutfit(name: string, items: Item[]): Promise<any> {
+    const user = this.auth.currentUser;
+    if (!user) {
+      return Promise.reject('User not logged in');
+    }
+
+    // نحصل فقط على IDs قطع الملابس
+    const itemIds = items.map((item) => item.id).filter((id) => id) as string[];
+
+    const newOutfit: Outfit = {
+      uid: user.uid,
+      name: name,
+      itemIds: itemIds,
+      createdAt: new Date(), // يحفظ تاريخ إنشاء الطقم
+    };
+
+    return addDoc(this.outfitsCollection, newOutfit);
+  }
+
+  /** يحذف طقمًا محفوظًا */
+  deleteOutfit(outfitId: string): Promise<void> {
+    const outfitDoc = doc(this.firestore, `outfits/${outfitId}`);
+    return deleteDoc(outfitDoc);
+  }
+
+  //end
 
   // Adds an item to the user's personal wardrobe
   addItem(item: Item) {

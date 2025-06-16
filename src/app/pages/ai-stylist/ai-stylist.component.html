@@ -1,0 +1,120 @@
+<div class="container mt-4">
+  <div class="card text-center shadow-lg">
+    <div class="card-header bg-dark text-white">
+      <h2 class="my-2">Your Personal AI Stylist</h2>
+    </div>
+    <div class="card-body p-4 p-md-5">
+      <div *ngIf="isLoading" class="d-flex justify-content-center p-5">
+        <div
+          class="spinner-border"
+          style="width: 3rem; height: 3rem"
+          role="status"
+        >
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      <ng-container *ngIf="!isLoading">
+        <h4 class="card-title">How can I help you dress today?</h4>
+
+        <div class="row justify-content-center mb-3">
+          <div class="col-md-8">
+            <label for="userRequest" class="form-label"
+              >Describe the occasion</label
+            >
+            <input
+              type="text"
+              id="userRequest"
+              class="form-control form-control-lg text-center"
+              [(ngModel)]="userRequest"
+              placeholder="e.g., 'a casual look for the park'"
+            />
+          </div>
+        </div>
+
+        <button
+          class="btn btn-lg btn-success"
+          (click)="getAiSuggestion()"
+          [disabled]="isAiLoading"
+        >
+          <span
+            *ngIf="isAiLoading"
+            class="spinner-border spinner-border-sm"
+          ></span>
+          {{ isAiLoading ? "Styling..." : "✨ Get My Outfit ✨" }}
+        </button>
+
+        <div *ngIf="suggestedOutfit.length > 0" class="mt-4 pt-4 border-top">
+          <h3 class="mb-4 text-primary">Here Is Your Look:</h3>
+          <div class="row justify-content-center">
+            <div
+              *ngFor="let item of suggestedOutfit"
+              class="col-md-4 col-lg-3 mb-4"
+            >
+              <div class="card h-100 suggestion-card">
+                <img
+                  [src]="item.imageUrl"
+                  class="card-img-top"
+                  [alt]="item.name"
+                  style="height: 250px; object-fit: cover"
+                />
+                <div class="card-body">
+                  <h5 class="card-title">{{ item.name }}</h5>
+                  <p class="card-text text-muted">{{ item.type }}</p>
+                  <div *ngIf="item.style || item.color" class="mb-2">
+                    <span *ngIf="item.style" class="badge bg-info me-1">{{
+                      item.style
+                    }}</span>
+                    <span
+                      *ngIf="item.color"
+                      class="badge"
+                      [style.background-color]="item.color.toLowerCase()"
+                      >{{ item.color }}</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="save-container mt-4">
+            <button
+              *ngIf="!showNameInput"
+              class="btn btn-info"
+              (click)="onSaveOutfitClick()"
+            >
+              ❤️ Save This Outfit
+            </button>
+            <div *ngIf="showNameInput" class="input-group">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Enter a name for this outfit..."
+                [(ngModel)]="newOutfitName"
+              />
+              <button
+                class="btn btn-primary"
+                type="button"
+                (click)="confirmSaveOutfit()"
+              >
+                Confirm & Save
+              </button>
+              <button
+                class="btn btn-secondary"
+                type="button"
+                (click)="showNameInput = false"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="aiJustification" class="mt-3 alert alert-info">
+            <h5 class="alert-heading">Stylist's Note:</h5>
+            <p class="mb-0 fst-italic">"{{ aiJustification }}"</p>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

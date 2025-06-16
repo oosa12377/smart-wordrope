@@ -7,8 +7,8 @@
       <form [formGroup]="addItemForm" (ngSubmit)="onSubmit()">
         <div class="row align-items-end">
           <div class="col-md-3 mb-3">
-            <label for="name" class="form-label">Item Name</label>
-            <input
+            <label for="name" class="form-label">Item Name</label
+            ><input
               type="text"
               id="name"
               class="form-control"
@@ -17,8 +17,8 @@
             />
           </div>
           <div class="col-md-2 mb-3">
-            <label for="type" class="form-label">Item Type</label>
-            <select id="type" class="form-select" formControlName="type">
+            <label for="type" class="form-label">Item Type</label
+            ><select id="type" class="form-select" formControlName="type">
               <option value="" disabled>Select type...</option>
               <option *ngFor="let type of itemTypes" [value]="type">
                 {{ type }}
@@ -26,8 +26,8 @@
             </select>
           </div>
           <div class="col-md-2 mb-3">
-            <label for="style" class="form-label">Style</label>
-            <select id="style" class="form-select" formControlName="style">
+            <label for="style" class="form-label">Style</label
+            ><select id="style" class="form-select" formControlName="style">
               <option value="" disabled>Select style...</option>
               <option *ngFor="let style of styles" [value]="style">
                 {{ style }}
@@ -35,8 +35,8 @@
             </select>
           </div>
           <div class="col-md-2 mb-3">
-            <label for="color" class="form-label">Color</label>
-            <select id="color" class="form-select" formControlName="color">
+            <label for="color" class="form-label">Color</label
+            ><select id="color" class="form-select" formControlName="color">
               <option value="" disabled>Select color...</option>
               <option *ngFor="let color of colors" [value]="color">
                 {{ color }}
@@ -55,9 +55,8 @@
             <small
               *ngIf="selectedFile"
               class="form-text text-muted mt-1 d-block"
+              >Selected: {{ selectedFile.name }}</small
             >
-              Selected: {{ selectedFile.name }}
-            </small>
           </div>
         </div>
         <button
@@ -80,17 +79,16 @@
   <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h4 class="my-0 fw-normal">My Wardrobe</h4>
-      <!-- تم تصحيح الرابط هنا -->
-      <a routerLink="/outfit" class="btn btn-success">✨ Suggest an Outfit</a>
+      <a routerLink="/ai-stylist" class="btn btn-success"
+        >✨ Suggest an Outfit</a
+      >
     </div>
     <div class="card-body">
       <ng-container *ngIf="groupedItems$ | async as groupedItems; else loading">
         <div *ngIf="objectKeys(groupedItems).length > 0; else noItems">
-          <!-- الحلقة الخارجية لعرض الفئات -->
           <div *ngFor="let category of objectKeys(groupedItems)" class="mb-5">
             <h2 class="display-6 border-bottom pb-2 mb-3">{{ category }}</h2>
             <div class="row">
-              <!-- الحلقة الداخلية لعرض الملابس داخل كل فئة -->
               <div
                 *ngFor="let item of groupedItems[category]"
                 class="col-md-4 col-lg-3 mb-4"
@@ -108,8 +106,8 @@
                     <div *ngIf="item.style || item.color" class="mb-2">
                       <span *ngIf="item.style" class="badge bg-info me-1">{{
                         item.style
-                      }}</span>
-                      <span
+                      }}</span
+                      ><span
                         *ngIf="item.color"
                         class="badge"
                         [style.background-color]="item.color.toLowerCase()"
@@ -130,19 +128,75 @@
         </div>
       </ng-container>
 
-      <ng-template #noItems>
-        <p class="text-center text-muted p-4">
+      <ng-template #noItems
+        ><p class="text-center text-muted p-4">
           Your wardrobe is empty. Add some items using the form above or from
           the dashboard!
-        </p>
-      </ng-template>
-      <ng-template #loading>
-        <div class="d-flex justify-content-center p-5">
+        </p></ng-template
+      >
+      <ng-template #loading
+        ><div class="d-flex justify-content-center p-5">
           <div class="spinner-border" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
+        </div></ng-template
+      >
+    </div>
+  </div>
+
+  <div class="card shadow-sm mt-4">
+    <div class="card-header">
+      <h4 class="my-0 fw-normal">My Saved Outfits</h4>
+    </div>
+    <div class="card-body">
+      <ng-container
+        *ngIf="savedOutfits$ | async as outfits; else loadingOutfits"
+      >
+        <div *ngIf="outfits.length > 0; else noOutfits">
+          <div class="row">
+            <div *ngFor="let outfit of outfits" class="col-md-6 col-lg-4 mb-4">
+              <div class="card h-100 outfit-card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h5 class="mb-0">{{ outfit.name }}</h5>
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="onDeleteOutfit(outfit.id)"
+                    title="Delete Outfit"
+                  >
+                    🗑️
+                  </button>
+                </div>
+                <div
+                  class="card-body d-flex align-items-center justify-content-center flex-wrap p-3"
+                >
+                  <div
+                    *ngFor="let itemId of outfit.itemIds"
+                    class="outfit-item-wrapper m-1"
+                  >
+                    <img
+                      *ngIf="getItemById(itemId) as item"
+                      [src]="item.imageUrl"
+                      [alt]="item.name"
+                      class="outfit-item-img"
+                      [title]="item.name"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </ng-template>
+      </ng-container>
+      <ng-template #noOutfits
+        ><p class="text-center text-muted p-3">
+          You have no saved outfits yet. Find one from the suggester pages!
+        </p></ng-template
+      >
+      <ng-template #loadingOutfits
+        ><p class="text-center p-3">Loading saved outfits...</p></ng-template
+      >
     </div>
   </div>
 </div>

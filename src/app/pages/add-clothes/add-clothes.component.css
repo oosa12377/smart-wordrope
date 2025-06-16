@@ -1,0 +1,10 @@
+.outfit-row {
+  background-color: #f8f9fa;
+}
+.outfit-item-img {
+  width: 75px;
+  height: 75px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+}

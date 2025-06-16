@@ -5,25 +5,30 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { authGuard } from './guards/auth.guard';
 import { AddClothesComponent } from './pages/add-clothes/add-clothes.component';
 import { OutfitSuggesterComponent } from './pages/outfit-suggester/outfit-suggester.component';
-
+import { AiStylistComponent } from './pages/ai-stylist/ai-stylist.component';
 
 export const routes: Routes = [
-     { path: '', component: LoginComponent },
-     { path: 'login', component: LoginComponent },
-     { path: 'register', component: RegisterComponent },
-     { 
-    path: 'dashboard', 
+  { path: '', component: LoginComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
+  {
+    path: 'dashboard',
     component: DashboardComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'add-clothes',
     component: AddClothesComponent,
-    canActivate: [authGuard] 
+    canActivate: [authGuard],
   },
   {
-    path: 'outfit', 
+    path: 'suggest-random',
     component: OutfitSuggesterComponent,
-    canActivate: [authGuard] // حماية الصفحة
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ai-stylist',
+    component: AiStylistComponent,
+    canActivate: [authGuard],
   },
 ];
