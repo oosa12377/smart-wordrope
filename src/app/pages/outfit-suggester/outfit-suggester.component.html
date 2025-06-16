@@ -29,7 +29,7 @@
             {{ isAiLoading ? "Thinking..." : "✨ Suggest with AI ✨" }}
           </button>
 
-          <button
+          <!-- <button
             class="btn btn-lg btn-secondary"
             (click)="suggestOutfitWithAi()"
             [disabled]="isAiLoading"
@@ -41,7 +41,7 @@
               aria-hidden="true"
             ></span>
             Suggest Randomly
-          </button>
+          </button> -->
         </div>
 
         <div *ngIf="suggestedOutfit.length > 0" class="mt-4 pt-4 border-top">
