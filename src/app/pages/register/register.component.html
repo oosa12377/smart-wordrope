@@ -9,7 +9,7 @@
         <input
           id="displayName"
           type="text"
-          class="form-control"
+          class="auth-input"
           formControlName="displayName"
           placeholder="Enter your name"
         />
@@ -19,7 +19,7 @@
         <input
           id="email"
           type="email"
-          class="form-control"
+          class="auth-input"
           formControlName="email"
           placeholder="Enter your email"
         />
@@ -29,7 +29,7 @@
         <input
           id="password"
           type="password"
-          class="form-control"
+          class="auth-input"
           formControlName="password"
           placeholder="Create a password (min. 6 characters)"
         />
@@ -44,16 +44,15 @@
         class="auth-button"
         [disabled]="isLoading || registerForm.invalid"
       >
-        <span
-          *ngIf="isLoading"
-          class="spinner-border spinner-border-sm"
-          aria-hidden="true"
-        ></span>
+        <span *ngIf="isLoading" class="auth-spinner" aria-hidden="true"></span>
         <span *ngIf="!isLoading">Create Account</span>
       </button>
 
       <div class="auth-footer">
-        <p>Already have an account? <a routerLink="/login">Login</a></p>
+        <p>
+          Already have an account?
+          <a routerLink="/login" class="auth-link">Login</a>
+        </p>
       </div>
     </form>
   </div>

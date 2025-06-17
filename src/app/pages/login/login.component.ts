@@ -14,7 +14,7 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
+  styleUrls: ['../auth.css'],
 })
 export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -37,17 +37,13 @@ export class LoginComponent implements OnInit {
       this.errorMessage = 'Please enter a valid email and password.';
       return;
     }
-
     this.isLoading = true;
     this.errorMessage = '';
-
     const { email, password } = this.loginForm.value;
-
     this.authService
       .login(email, password)
-      .then((userCredential) => {
+      .then(() => {
         this.isLoading = false;
-        console.log('User logged in successfully:', userCredential.user);
         this.router.navigate(['/dashboard']);
       })
       .catch((error) => {
@@ -57,7 +53,6 @@ export class LoginComponent implements OnInit {
   }
 
   private handleLoginError(error: any): void {
-    console.error('Login Error:', error.code);
     switch (error.code) {
       case 'auth/invalid-credential':
         this.errorMessage = 'Invalid email or password.';

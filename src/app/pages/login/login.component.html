@@ -2,14 +2,14 @@
   <div class="auth-card">
     <h2>Login</h2>
     <p class="auth-subtitle">Welcome back! Please enter your details.</p>
-    
+
     <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
       <div class="form-group">
         <label for="login-email">Email</label>
         <input
           id="login-email"
           type="email"
-          class="form-control"
+          class="auth-input"
           formControlName="email"
           placeholder="Enter your email"
         />
@@ -19,23 +19,34 @@
         <input
           id="login-password"
           type="password"
-          class="form-control"
+          class="auth-input"
           formControlName="password"
           placeholder="Enter your password"
         />
+      </div>
+
+      <div class="text-end mb-3">
+        <a routerLink="/forgot" class="auth-link">Forgot Password?</a>
       </div>
 
       <div class="error-message" *ngIf="errorMessage">
         {{ errorMessage }}
       </div>
 
-      <button type="submit" class="auth-button" [disabled]="isLoading || loginForm.invalid">
-        <span *ngIf="isLoading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <button
+        type="submit"
+        class="auth-button"
+        [disabled]="isLoading || loginForm.invalid"
+      >
+        <span *ngIf="isLoading" class="auth-spinner" aria-hidden="true"></span>
         <span *ngIf="!isLoading">Login</span>
       </button>
 
       <div class="auth-footer">
-        <p>Don't have an account? <a routerLink="/register">Register</a></p>
+        <p>
+          Don't have an account?
+          <a routerLink="/register" class="auth-link">Register</a>
+        </p>
       </div>
     </form>
   </div>

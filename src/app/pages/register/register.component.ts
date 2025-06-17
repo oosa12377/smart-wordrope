@@ -14,7 +14,7 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css'],
+  styleUrls: ['../auth.css'],
 })
 export class RegisterComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -38,19 +38,13 @@ export class RegisterComponent implements OnInit {
       this.errorMessage = 'Please fill all fields correctly.';
       return;
     }
-
     this.isLoading = true;
     this.errorMessage = '';
     const { displayName, email, password } = this.registerForm.value;
-
     this.authService
       .register(email, password, displayName)
-      .then((userCredential) => {
+      .then(() => {
         this.isLoading = false;
-        console.log(
-          'User registered and profile created:',
-          userCredential.user
-        );
         this.router.navigate(['/login']);
       })
       .catch((error) => {
@@ -61,7 +55,6 @@ export class RegisterComponent implements OnInit {
         } else {
           this.errorMessage = 'Registration failed. Please try again.';
         }
-        console.error('Error registering:', error);
       });
   }
 }

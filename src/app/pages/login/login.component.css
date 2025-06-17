@@ -1,11 +1,10 @@
-/* Main container - matches navbar and register form */
-.auth-container {
+Main container - matches navbar and register form .auth-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   background: linear-gradient(135deg, #2c3e50 0%, #1a1a1a 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Card styling with glassmorphism effect */
@@ -148,7 +147,7 @@
     width: 90%;
     padding: 1.5rem;
   }
-  
+
   .auth-card h2 {
     font-size: 1.5rem;
   }
